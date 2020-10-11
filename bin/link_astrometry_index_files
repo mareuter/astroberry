@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+###############################################################################
+# Debian and Ubunutu both have packages for the astrometry.net index files.
+# However, the files in those packages do not have the correct naming
+# convention that astrometry.net likes. This script will create links with the
+# proper naming convention.
+#
+# As of October 11, 2020, the distributions contain the following packages:
+# * astrometry-data-2mass
+# * astrometry-data-tycho2
+#
+# There are individual files based on the different search region sizes if one
+# does not want to download them all. Use pacakge search to find out which
+# apply.
+###############################################################################
+
+import os
+import pathlib
+
+
+INDEX_MAPPING = {"2mass": "42", "tycho2": "41"}
+
+
+def main():
+    old_path = pathlib.Path.cwd()
+    astrometry_index_dir = pathlib.Path("/usr/share/astrometry")
+    os.chdir(astrometry_index_dir)
+    for index_type, index_value in INDEX_MAPPING.items():
+        for index_file in astrometry_index_dir.glob(f"*{index_type}*"):
+            index = index_file.name.split(".")[0].split("-")[2]
+            link_filename = f"index-{index_value}{index}.fits"
+            link_file = index_file.with_name(link_filename)
+            if not link_file.exists():
+                link_file.symlink_to(index_file)
+    os.chdir(old_path)
+
+
+if __name__ == '__main__':
+    main()
